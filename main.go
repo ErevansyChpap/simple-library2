@@ -24,4 +24,15 @@ func main() {
 	book1.ReturnBook()
 	fmt.Println(book1)
 	user1.AssignBook(&book1)
+
+
+	srez := []Notifier{}
+	mail := EmailNotifier{EmailAddress: "sobaka@mail.ru"}
+	sms := SMSNotifier{PhoneNumber: "88005454545"}
+	srez = append(srez, mail, sms)
+	for i := 0; i < len(srez); i++{
+		srez[i].Notify("Ваша книга просрочена")
+	}
+
+
 }

@@ -52,6 +52,37 @@ func (lib *Library) AddBook(title, author string, year int) *Book {
 	return newBook
 }
 
+func (l *Library) FindBookByID(id int) (*Book, error) {
+	for i := 0; i < len(l.Books); i++ {
+		if i == id {
+			return l.Books[i], nil
+		}
+	}
+	return nil, fmt.Errorf("книга с ID %d не найдена", id)
+}
+
+func (l *Library) FindReaderByID(id int) (*Reader, error) {
+	for i := 0; i < len(l.Readers); i++ {
+		if i == id {
+			return l.Readers[i], nil
+		}
+	}
+	return nil, fmt.Errorf("читатель с ID %d не найден", id)
+}
+
+func (l *Library) IssueBookToReader(bookID int, readerID int) error {
+	book, err := l.FindBookByID(bookID)
+	if book == nil {
+		return err
+	}
+	reader, err2 := l.FindReaderByID(readerID)
+	if reader == nil {
+		return err2
+	}
+	book.IssueBook(reader)
+	return nil
+}
+
 func (r Reader) DisplayReader() {
 	fmt.Printf("Читатель: %s %s (ID: %d)(Status: %v)\n", r.FirstName, r.LastName, r.ID, r.IsActive)
 }

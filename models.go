@@ -2,6 +2,7 @@ package main
 
 import "fmt"
 
+//Структура книги
 type Book struct {
 	ID       int
 	Year     int
@@ -11,18 +12,18 @@ type Book struct {
 	ReaderId *int
 }
 
-func (r *Reader) AssignBook(b *Book) {
-	fmt.Printf("Читатель %s %s взял книгу %s(%s %d)\n", r.FirstName, r.LastName, b.Title, b.Author, b.Year)
+
+//Метод для деактивации читателя
+func (r *Reader) Deactivate() error{
+	if !r.IsActive {
+		return fmt.Errorf("%v и так неактивен", r)
+	} else{
+		r.IsActive = false
+	}
+	return nil
 }
 
-func (r Reader) DisplayReader() {
-	fmt.Printf("Читатель: %s %s (ID: %d)(Status: %v)\n", r.FirstName, r.LastName, r.ID, r.IsActive)
-}
-
-func (r *Reader) Deactivate() {
-	r.IsActive = false
-}
-
+//Метод для красивого выводы читателя
 func (r Reader) String() string {
 	status := ""
 	if r.IsActive {
@@ -33,6 +34,7 @@ func (r Reader) String() string {
 	return fmt.Sprintf("Пользователь %s %s, ID: %d, пользователь %s", r.FirstName, r.LastName, r.ID, status)
 }
 
+//Метод для красивого вывода книга
 func (b Book) String() string {
 	status := ""
 	if b.IsIssued {
@@ -44,17 +46,18 @@ func (b Book) String() string {
 	}
 
 }
-
-func (b *Book) IssueBook(r *Reader) {
+//Метод проверяющий используется ли книга
+func (b *Book) IssueBook(r *Reader) error {
 	if b.IsIssued {
-		fmt.Println("Книга уже используется.")
+		return fmt.Errorf("Книга уже используется.")
 	} else {
 		b.IsIssued = true
 		b.ReaderId = &r.ID
-		fmt.Printf("Книга выдана читателю %s %s.\n", r.FirstName, r.LastName)
 	}
+	return nil
 }
 
+//Метод возвращающий книгу
 func (b *Book) ReturnBook() error {
 	if !b.IsIssued {
 		return fmt.Errorf("книга '%s' и так в библиотеке", b.Title)
@@ -65,6 +68,7 @@ func (b *Book) ReturnBook() error {
 	return nil
 }
 
+//Структура библиотеки
 type Library struct {
 	Books   []*Book
 	Readers []*Reader
@@ -73,7 +77,11 @@ type Library struct {
 	lastReaderID int
 }
 
-func (l *Library) AddReader(firstName, lastName string) *Reader {
+//Метод добавляющтй читателя в библиотеку
+func (l *Library) AddReader(firstName, lastName string) (*Reader, error) {
+	if firstName == "" || lastName == ""{
+		return nil, fmt.Errorf("Имя или фамилия не могут быть пустыми")
+	}
 	l.lastReaderID++
 	newReader := &Reader{
 		ID:        l.lastReaderID,
@@ -82,13 +90,17 @@ func (l *Library) AddReader(firstName, lastName string) *Reader {
 		IsActive:  true,
 	}
 	l.Readers = append(l.Readers, newReader)
-	fmt.Printf("Зарегистрирован новый читатель: %s\n", newReader)
-	return newReader
+	return newReader, nil
 }
 
-func (l *Library) AddBook(year int, title, author string) *Book {
+//Метод добавляющий книгу в библиотеку
+func (l *Library) AddBook(year int, title, author string) (*Book, error) {
+	for _, value := range l.Books {
+		if value.Author == author && value.Title == title {
+			return nil, fmt.Errorf("Такая книга уже есть в библиотеке.")
+		}
+	}
 	l.lastBookID++
-
 	newBook := &Book{
 		ID:       l.lastBookID,
 		Year:     year,
@@ -97,10 +109,10 @@ func (l *Library) AddBook(year int, title, author string) *Book {
 		IsIssued: false,
 	}
 	l.Books = append(l.Books, newBook)
-	fmt.Printf("Добавлена новая книга: %s\n", newBook)
-	return newBook
+	return newBook, nil
 }
 
+//Метод ищущий читателя по ID
 func (l *Library) FindBookById(id int) (*Book, error) {
 	flag := false
 	for i := 0; i < len(l.Books); i++ {
@@ -114,6 +126,7 @@ func (l *Library) FindBookById(id int) (*Book, error) {
 	return nil, fmt.Errorf("книга с ID %d не найдена", id)
 }
 
+//Метод ищущий книгу по ID
 func (l *Library) FindReaderById(id int) (*Reader, error) {
 	flag := false
 	for i := 0; i < len(l.Readers); i++ {
@@ -127,6 +140,7 @@ func (l *Library) FindReaderById(id int) (*Reader, error) {
 	return nil, fmt.Errorf("читатель с ID %d не найден", id)
 }
 
+//Метод для выдачи книги читателю
 func (l *Library) IssueBookToReader(bookId, readerId int) error {
 	book, err := l.FindBookById(bookId)
 	if book == nil {
@@ -136,10 +150,14 @@ func (l *Library) IssueBookToReader(bookId, readerId int) error {
 	if reader == nil {
 		return err
 	}
-	book.IssueBook(reader)
+	err = book.IssueBook(reader)
+	if err != nil{
+		return err
+	}
 	return nil
 }
 
+//Метод возвращающий книгу по ID
 func (l *Library) ReturnBook(bookId int) error {
 	book, err := l.FindBookById(bookId)
 	if err != nil {
@@ -152,6 +170,7 @@ func (l *Library) ReturnBook(bookId int) error {
 	return nil
 }
 
+//Структура читателя
 type Reader struct {
 	ID        int
 	FirstName string

@@ -4,8 +4,7 @@ import (
 	"fmt"
 )
 
-
-type Notifier interface{
+type Notifier interface {
 	Notify(message string)
 }
 
@@ -13,15 +12,14 @@ type EmailNotifier struct {
 	EmailAddress string
 }
 
-type SMSNotifier struct{
+type SMSNotifier struct {
 	PhoneNumber string
 }
 
-func (e EmailNotifier) Notify(message string){
+func (e EmailNotifier) Notify(message string) {
 	fmt.Printf("Отправляю email на %s: %s\n", e.EmailAddress, message)
 }
 
-func (s SMSNotifier) Notify(message string){
+func (s SMSNotifier) Notify(message string) {
 	fmt.Printf("Отправляю SMS на номер %s: %s\n", s.PhoneNumber, message)
 }
-

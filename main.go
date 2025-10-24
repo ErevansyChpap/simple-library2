@@ -8,12 +8,11 @@ func main() {
 	myLibrary := &Library{}
 
 	fmt.Println("\n--- Наполняем библиотеку ---")
+	myLibrary.AddReader("Тамерлан", "Джигкаев")
+	myLibrary.AddReader("Линда", "Элбакянц")
 
-	myLibrary.AddReader("Агунда", "Кокойты")
-	myLibrary.AddReader("Сергей", "Меняйло")
-
-	myLibrary.AddBook("1984", "Джордж Оруэлл", 1949)
-	myLibrary.AddBook("Мастер и Маргарита", "Михаил Булгаков", 1967)
+	myLibrary.AddBook(1984, "1984", "Джордж Оруэлл")
+	myLibrary.AddBook(1967, "Мастер и Маргарита", "Михаил Булгаков")
 
 	fmt.Println("\n--- Библиотека готова к работе ---")
 	fmt.Println("Количество читателей:", len(myLibrary.Readers))
@@ -27,15 +26,18 @@ func main() {
 	}
 
 	//Проверить статус книги после выдачи
-	book, _ := myLibrary.FindBookByID(1)
+	book, _ := myLibrary.FindBookById(1)
 	if book != nil {
 		fmt.Println("Статус книги после выдачи:", book)
 	}
 
-	//Попытка выдать несуществующую книгу
-	err = myLibrary.IssueBookToReader(99, 1)
-	if err != nil {
-		fmt.Println("Ожидаемая ошибка:", err)
+	//Тестирование возврата книги
+	test := myLibrary.ReturnBook(1)
+	if test != nil {
+		fmt.Println(test)
 	}
 
+	if book != nil {
+		fmt.Println("Статус книги после возврата:", book)
+	}
 }

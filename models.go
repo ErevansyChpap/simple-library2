@@ -2,14 +2,6 @@ package main
 
 import "fmt"
 
-type Library struct {
-	Books   []*Book
-	Readers []*Reader
-
-	LastBookID   int
-	LastReaderID int
-}
-
 type Book struct {
 	ID       int
 	Year     int
@@ -19,68 +11,8 @@ type Book struct {
 	ReaderId *int
 }
 
-func (lib *Library) AddReader(firstName, lastName string) *Reader {
-	lib.LastReaderID++
-
-	newReader := &Reader{
-		ID:        lib.LastReaderID,
-		FirstName: firstName,
-		LastName:  lastName,
-		IsActive:  true,
-	}
-
-	lib.Readers = append(lib.Readers, newReader)
-
-	fmt.Printf("Зарегистрирован новый читатель: %s\n", newReader)
-	return newReader
-}
-
-func (lib *Library) AddBook(title, author string, year int) *Book {
-	lib.LastBookID++
-
-	newBook := &Book{
-		ID:       lib.LastBookID,
-		Title:    title,
-		Author:   author,
-		Year:     year,
-		IsIssued: false,
-	}
-
-	lib.Books = append(lib.Books, newBook)
-
-	fmt.Printf("Добавлена новая книга: %s\n", newBook)
-	return newBook
-}
-
-func (l *Library) FindBookByID(id int) (*Book, error) {
-	for i := 0; i < len(l.Books); i++ {
-		if i == id {
-			return l.Books[i], nil
-		}
-	}
-	return nil, fmt.Errorf("книга с ID %d не найдена", id)
-}
-
-func (l *Library) FindReaderByID(id int) (*Reader, error) {
-	for i := 0; i < len(l.Readers); i++ {
-		if i == id {
-			return l.Readers[i], nil
-		}
-	}
-	return nil, fmt.Errorf("читатель с ID %d не найден", id)
-}
-
-func (l *Library) IssueBookToReader(bookID int, readerID int) error {
-	book, err := l.FindBookByID(bookID)
-	if book == nil {
-		return err
-	}
-	reader, err2 := l.FindReaderByID(readerID)
-	if reader == nil {
-		return err2
-	}
-	book.IssueBook(reader)
-	return nil
+func (r *Reader) AssignBook(b *Book) {
+	fmt.Printf("Читатель %s %s взял книгу %s(%s %d)\n", r.FirstName, r.LastName, b.Title, b.Author, b.Year)
 }
 
 func (r Reader) DisplayReader() {
@@ -123,18 +55,101 @@ func (b *Book) IssueBook(r *Reader) {
 	}
 }
 
-func (b *Book) ReturnBook() {
+func (b *Book) ReturnBook() error {
 	if !b.IsIssued {
-		fmt.Println("Книга уже в библиотеке.")
+		return fmt.Errorf("книга '%s' и так в библиотеке", b.Title)
 	} else {
 		b.IsIssued = false
 		b.ReaderId = nil
-		fmt.Println("Книга возвращена.")
 	}
+	return nil
 }
 
-func (r *Reader) AssignBook(b *Book) {
-	fmt.Printf("Читатель %s %s взял книгу %s(%s %d)\n", r.FirstName, r.LastName, b.Title, b.Author, b.Year)
+type Library struct {
+	Books   []*Book
+	Readers []*Reader
+
+	lastBookID   int
+	lastReaderID int
+}
+
+func (l *Library) AddReader(firstName, lastName string) *Reader {
+	l.lastReaderID++
+	newReader := &Reader{
+		ID:        l.lastReaderID,
+		FirstName: firstName,
+		LastName:  lastName,
+		IsActive:  true,
+	}
+	l.Readers = append(l.Readers, newReader)
+	fmt.Printf("Зарегистрирован новый читатель: %s\n", newReader)
+	return newReader
+}
+
+func (l *Library) AddBook(year int, title, author string) *Book {
+	l.lastBookID++
+
+	newBook := &Book{
+		ID:       l.lastBookID,
+		Year:     year,
+		Title:    title,
+		Author:   author,
+		IsIssued: false,
+	}
+	l.Books = append(l.Books, newBook)
+	fmt.Printf("Добавлена новая книга: %s\n", newBook)
+	return newBook
+}
+
+func (l *Library) FindBookById(id int) (*Book, error) {
+	flag := false
+	for i := 0; i < len(l.Books); i++ {
+		if i == id {
+			flag = true
+		}
+	}
+	if flag {
+		return l.Books[id], nil
+	}
+	return nil, fmt.Errorf("книга с ID %d не найдена", id)
+}
+
+func (l *Library) FindReaderById(id int) (*Reader, error) {
+	flag := false
+	for i := 0; i < len(l.Readers); i++ {
+		if i == id-1 {
+			flag = true
+		}
+	}
+	if flag {
+		return l.Readers[id-1], nil
+	}
+	return nil, fmt.Errorf("читатель с ID %d не найден", id)
+}
+
+func (l *Library) IssueBookToReader(bookId, readerId int) error {
+	book, err := l.FindBookById(bookId)
+	if book == nil {
+		return err
+	}
+	reader, err := l.FindReaderById(readerId)
+	if reader == nil {
+		return err
+	}
+	book.IssueBook(reader)
+	return nil
+}
+
+func (l *Library) ReturnBook(bookId int) error {
+	book, err := l.FindBookById(bookId)
+	if err != nil {
+		return err
+	}
+	test := book.ReturnBook()
+	if test != nil {
+		return test
+	}
+	return nil
 }
 
 type Reader struct {
